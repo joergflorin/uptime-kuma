@@ -1,0 +1,38 @@
+version: "3"
+services:
+      
+  uptime-kuma:
+    container_name: uptime-kuma
+    environment:
+      TZ: Europe/Berlin
+    hostname: uptime-kuma
+    image: louislam/uptime-kuma:1
+    ports:
+      - 3001:3001
+    restart: always
+    volumes:
+      # to be modified depending on your needs
+      - ./uptime-kuma:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl localhost:3001 || exit 1"]
+      interval: 60s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+    labels:
+      traefik.enable: true
+
+      traefik.http.routers.uptime-kuma.rule: ${TRAEFIK_RULE}
+      traefik.http.routers.uptime-kuma.entrypoints: web
+      traefik.http.routers.uptime-kuma.tls: false
+      traefik.http.routers.uptime-kuma.service: uptime-kuma
+      traefik.http.services.uptime-kuma.loadbalancer.server.port: 3001
+
+      traefik.docker.network: web
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
